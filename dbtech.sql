@@ -399,8 +399,48 @@ SUM((order_items.quantity * order_items.unit_price) - order_items.discount) + or
 FROM orders
 JOIN customers ON orders.customer_id = customers.customer_id
 JOIN order_items ON orders.order_id = order_items.order_id
- ROUP BY orders.order_id, orders.order_code, customers.full_name, orders.shipping_cost
+ GROUP BY orders.order_id, orders.order_code, customers.full_name, orders.shipping_cost
  HAVING SUM(order_items.quantity) > COUNT(DISTINCT order_items.product_id) 
  AND SUM((order_items.quantity * order_items.unit_price) - order_items.discount) + orders.shipping_cost > 1000000;
 
 
+SELECT addresses.city,
+ COUNT(DISTINCT orders.order_id) AS total_order_paid,
+ SUM(order_items.quantity) AS total_quantity,
+ SUM((order_items.quantity * order_items.unit_price) - order_items.discount) AS total_sales
+ FROM orders
+ JOIN customers ON orders.customer_id = customers.customer_id
+ JOIN addresses ON orders.shipping_address_id = addresses.address_id
+ JOIN order_items ON orders.order_id = order_items.order_id
+ JOIN payments ON orders.order_id = payments.order_id
+ WHERE payments.payment_status = 'paid'
+ GROUP BY addresses.city
+ HAVING COUNT(DISTINCT orders.order_id) >= 2
+ ORDER BY total_sales DESC;
+
+-- 19
+SELECT product_id, product_name, price
+FROM products
+WHERE price > (SELECT AVG(price) FROM products);
+
+-- 20
+SELECT product_id, product_name, price
+FROM products
+WHERE product_id IN (SELECT product_id FROM order_items);
+
+-- 21
+SELECT c.customer_id, c.full_name, a.city, a.province
+FROM customers c
+JOIN addresses a ON c.customer_id = a.customer_id AND a.is_primary = TRUE
+WHERE c.customer_id NOT IN (SELECT customer_id FROM orders);
+
+-- 22
+SELECT c.customer_id, c.full_name, a.city, a.province
+FROM customers c
+JOIN addresses a ON c.customer_id = a.customer_id AND a.is_primary = TRUE
+WHERE c.customer_id IN (
+    SELECT o.customer_id
+    FROM orders o
+    JOIN payments p ON o.order_id = p.order_id
+    WHERE p.payment_status = 'paid'
+);
