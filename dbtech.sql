@@ -204,6 +204,8 @@ INSERT INTO payments (payment_id, order_id, payment_method, payment_date, amount
 (9, 9, 'Virtual Account', '2026-08-19 12:24:00', 447500, 'paid', 'PAY2026009'),
 (10, 10, 'COD', '2026-08-22 12:15:00', 652100, 'paid', 'PAY2026010');
 
+
+-- 1. Tampilkan total data produk, total stock, rata-rata harga, harga tertinggi, dan harga terendah dari tabel products!  
 SELECT COUNT(*) AS total_produk,
     SUM(stock) AS total_stock,
     AVG(price) AS rata_rata_harga,
@@ -211,6 +213,7 @@ SELECT COUNT(*) AS total_produk,
     MIN(price) AS harga_terendah
 FROM products;
 
+-- 2. Tampilkan category_id, total data produk, total stock, rata-rata stock, stock tertinggi, dan stock terendah. Kelompokkan berdasarkan category_id!  
 SELECT category_id,
     COUNT(*) AS total_produk,
     SUM(stock) AS total_stock,
@@ -220,6 +223,7 @@ SELECT category_id,
 FROM products
 GROUP BY category_id;
 
+-- 3. Tampilkan category_id, total data produk, total stock, rata-rata harga, harga tertinggi, dan harga terendah hanya untuk produk yang aktif!  
 SELECT category_id,
     COUNT(*) AS total_produk,
     SUM(stock) AS total_stock,
@@ -230,6 +234,7 @@ FROM products
 WHERE is_active = true
 GROUP BY category_id;
 
+-- 4. Tampilkan category_id, total produk, total stock, dan rata-rata harga untuk kategori yang memiliki minimal 2 produk!  
 SELECT category_id,
     COUNT(*) AS total_produk,
     SUM(stock) AS total_stock,
@@ -238,6 +243,7 @@ FROM products
 GROUP BY category_id
 HAVING COUNT(*) >= 2;
 
+-- 5. Tampilkan category_id, total produk, total stock, dan rata-rata stock untuk kelompok kategori yang total stock-nya minimal 20 dan rata-rata stock-nya lebih dari 5!  
 SELECT category_id,
     COUNT(*) AS total_produk,
     SUM(stock) AS total_stock,
@@ -246,6 +252,7 @@ FROM products
 GROUP BY category_id
 HAVING SUM(stock) >= 20 AND AVG(stock) > 5;
 
+-- 6. Tampilkan order_code, order_date, full_name, city, province, dan status! 
 SELECT orders.order_code,
     orders.order_date,
     customers.full_name,
@@ -254,8 +261,9 @@ SELECT orders.order_code,
     orders.status
 FROM orders
 JOIN customers ON orders.customer_id = customers.customer_id
-JOIN addresses ON orders.customer_id = addresses.customer_id;
+JOIN addresses ON orders.shipping_address_id = addresses.address_id;
 
+-- 7. Tampilkan order_code, full_name, product_name, quantity, unit_price, dan discount!  
 SELECT orders.order_code,
     customers.full_name,
     products.product_name,
@@ -267,6 +275,7 @@ JOIN customers ON orders.customer_id = customers.customer_id
 JOIN order_items ON orders.order_id = order_items.order_id
 JOIN products ON order_items.product_id = products.product_id;
 
+-- 8. Tampilkan order_code, full_name, product_name, quantity, unit_price, discount, dan subtotal!  
 SELECT orders.order_code,
     customers.full_name,
     products.product_name,
@@ -279,6 +288,7 @@ JOIN customers ON orders.customer_id = customers.customer_id
 JOIN order_items ON orders.order_id = order_items.order_id
 JOIN products ON order_items.product_id = products.product_id;
 
+-- 9. Tampilkan order_code, full_name, city, product_name, category_name, quantity, subtotal, payment_method, dan payment_status!
 SELECT orders.order_code,
     customers.full_name,
     addresses.city,
@@ -296,6 +306,7 @@ JOIN products ON order_items.product_id = products.product_id
 JOIN categories ON products.category_id = categories.category_id
 LEFT JOIN payments ON orders.order_id = payments.order_id;
 
+-- 10. Gunakan query sebelumnya dan tampilkan hanya transaksi dengan payment_status = paid!  
 SELECT orders.order_code,
     customers.full_name,
     addresses.city,
@@ -314,6 +325,7 @@ JOIN categories ON products.category_id = categories.category_id
 JOIN payments ON orders.order_id = payments.order_id
 WHERE payments.payment_status = 'paid';
 
+-- 11. Tampilkan seluruh order beserta informasi payment, termasuk order yang belum mempunyai payment. Tampilkan order_code, full_name, order_status, product_name, category_name, subtotal, payment_method, dan payment_status!  
 SELECT orders.order_code,
     customers.full_name,
     orders.status AS order_status,
@@ -329,6 +341,7 @@ JOIN products ON order_items.product_id = products.product_id
 JOIN categories ON products.category_id = categories.category_id
 LEFT JOIN payments ON orders.order_id = payments.order_id;
 
+-- 12. Tampilkan seluruh detail transaksi seperti soal sebelumnya dan tambahkan transaction_level: subtotal >= 2.000.000 = High Value, subtotal >= 1.000.000 = Medium Value, selain itu Regular!  
 SELECT orders.order_code,
     customers.full_name,
     orders.status AS order_status,
@@ -349,6 +362,7 @@ JOIN products ON order_items.product_id = products.product_id
 JOIN categories ON products.category_id = categories.category_id
 LEFT JOIN payments ON orders.order_id = payments.order_id;
 
+-- 13. Tampilkan customer_id, full_name, dan total_order untuk seluruh customer. Customer yang belum pernah order harus tetap ditampilkan. Urutkan berdasarkan total_order tertinggi!  
 SELECT customers.customer_id,
  customers.full_name,
  COUNT(orders.order_id) AS total_order
@@ -357,6 +371,7 @@ SELECT customers.customer_id,
  GROUP BY customers.customer_id, customers.full_name
  ORDER BY total_order DESC;
 
+-- 14. Tampilkan product_name, total_quantity per produk, dan total_penjualan per produk. Kelompokkan berdasarkan produk dan urutkan berdasarkan total_penjualan tertinggi!  
 SELECT products.product_name,
  SUM(order_items.quantity) AS total_quantity,
  SUM((order_items.quantity * order_items.unit_price) - order_items.discount) AS total_penjualan
@@ -365,6 +380,7 @@ SELECT products.product_name,
  GROUP BY products.product_id, products.product_name
  ORDER BY total_penjualan DESC;
 
+-- 15. Tampilkan category_name, total_product_terjual, total_quantity, total_sales, avg_item_sales, max_item_sales, dan min_item_sales untuk setiap kategori!  
 SELECT categories.category_name,
  COUNT(DISTINCT products.product_id) AS total_product_terjual,
  SUM(order_items.quantity) AS total_quantity,
@@ -377,6 +393,7 @@ SELECT categories.category_name,
  JOIN order_items ON products.product_id = order_items.product_id
  GROUP BY categories.category_id, categories.category_name;
 
+-- 16. Tampilkan order_code, full_name, total_item, total_quantity, product_total, shipping_cost, dan grand_total untuk setiap order!
 SELECT orders.order_code,
  customers.full_name,
  COUNT(DISTINCT order_items.product_id) AS total_item,
@@ -389,6 +406,7 @@ SELECT orders.order_code,
  JOIN order_items ON orders.order_id = order_items.order_id
  GROUP BY orders.order_id, orders.order_code, customers.full_name, orders.shipping_cost;
 
+-- 17. Dari ringkasan per order, tampilkan hanya transaksi dengan total_quantity > total_item dan grand_total > 1.000.000!  
 SELECT orders.order_code,
  customers.full_name,
 COUNT(DISTINCT order_items.product_id) AS total_item,
@@ -399,8 +417,460 @@ SUM((order_items.quantity * order_items.unit_price) - order_items.discount) + or
 FROM orders
 JOIN customers ON orders.customer_id = customers.customer_id
 JOIN order_items ON orders.order_id = order_items.order_id
- ROUP BY orders.order_id, orders.order_code, customers.full_name, orders.shipping_cost
+ GROUP BY orders.order_id, orders.order_code, customers.full_name, orders.shipping_cost
  HAVING SUM(order_items.quantity) > COUNT(DISTINCT order_items.product_id) 
  AND SUM((order_items.quantity * order_items.unit_price) - order_items.discount) + orders.shipping_cost > 1000000;
 
+-- 18. Tampilkan city, total_order_paid, total_quantity, dan total_sales untuk transaksi dengan payment_status = paid. Hanya tampilkan kota yang memiliki minimal 2 order paid!  
+SELECT addresses.city,
+    COUNT(DISTINCT orders.order_id) AS total_order_paid,
+    SUM(order_items.quantity) AS total_quantity,
+    SUM((order_items.quantity * order_items.unit_price) - order_items.discount) AS total_sales
+FROM orders
+JOIN addresses ON orders.shipping_address_id = addresses.address_id
+JOIN order_items ON orders.order_id = order_items.order_id
+JOIN payments ON orders.order_id = payments.order_id
+WHERE payments.payment_status = 'paid'
+GROUP BY addresses.city
+HAVING COUNT(DISTINCT orders.order_id) >= 2;
 
+-- 19. Tampilkan product_id, product_name, dan price untuk produk yang harganya lebih tinggi daripada rata-rata harga seluruh produk!  
+SELECT products.product_id,
+    products.product_name,
+    products.price
+FROM products
+WHERE products.price > (SELECT AVG(price) FROM products);
+
+-- 20. Tampilkan product_id, product_name, dan price untuk produk yang sudah pernah dibeli!  
+SELECT DISTINCT products.product_id,
+    products.product_name,
+    products.price
+FROM products
+JOIN order_items ON products.product_id = order_items.product_id;
+
+-- 21. Tampilkan customer_id, full_name, city, dan province untuk customer yang belum pernah melakukan order!  
+SELECT customers.customer_id,
+    customers.full_name,
+    addresses.city,
+    addresses.province
+FROM customers
+LEFT JOIN addresses ON customers.customer_id = addresses.customer_id AND addresses.is_primary = TRUE
+WHERE customers.customer_id NOT IN (SELECT customer_id FROM orders);
+
+-- 22. Tampilkan customer_id, full_name, city, dan province untuk customer yang pernah memiliki transaksi dengan payment_status = paid!
+SELECT DISTINCT customers.customer_id,
+    customers.full_name,
+    addresses.city,
+    addresses.province
+FROM customers
+JOIN addresses ON customers.customer_id = addresses.customer_id AND addresses.is_primary = TRUE
+JOIN orders ON customers.customer_id = orders.customer_id
+JOIN payments ON orders.order_id = payments.order_id
+WHERE payments.payment_status = 'paid';
+
+-- 23. Tampilkan product_name, category_name, dan price untuk produk yang harganya lebih tinggi daripada rata-rata harga produk pada kategori yang sama!  
+SELECT products.product_name,
+    categories.category_name,
+    products.price
+FROM products
+JOIN categories ON products.category_id = categories.category_id
+WHERE products.price > (
+    SELECT AVG(sub_products.price)
+    FROM products AS sub_products
+    WHERE sub_products.category_id = products.category_id
+);
+
+-- 24. Tampilkan order_code, order_date, full_name, dan status untuk order yang mengandung produk dengan stock tertinggi saat ini!  
+SELECT orders.order_code,
+    orders.order_date,
+    customers.full_name,
+    orders.status
+FROM orders
+JOIN customers ON orders.customer_id = customers.customer_id
+JOIN order_items ON orders.order_id = order_items.order_id
+JOIN products ON order_items.product_id = products.product_id
+WHERE products.stock = (SELECT MAX(stock) FROM products);
+
+-- 25. Tampilkan order_code, full_name, dan product_total untuk order yang product_total-nya lebih tinggi daripada rata-rata product_total seluruh order. Gunakan subquery pada FROM (derived table), belum menggunakan CTE!  
+SELECT order_summary.order_code,
+    order_summary.full_name,
+    order_summary.product_total
+FROM (
+    SELECT orders.order_code,
+        customers.full_name,
+        SUM((order_items.quantity * order_items.unit_price) - order_items.discount) AS product_total
+    FROM orders
+    JOIN customers ON orders.customer_id = customers.customer_id
+    JOIN order_items ON orders.order_id = order_items.order_id
+    GROUP BY orders.order_id, orders.order_code, customers.full_name
+) AS order_summary
+WHERE order_summary.product_total > (
+    SELECT AVG(average_summary.product_total)
+    FROM (
+        SELECT SUM((order_items.quantity * order_items.unit_price) - order_items.discount) AS product_total
+        FROM orders
+        JOIN order_items ON orders.order_id = order_items.order_id
+        GROUP BY orders.order_id
+    ) AS average_summary
+);
+
+-- 26. Gunakan CTE bernama order_totals untuk menampilkan order_id dan product_total setiap order. Product_total dihitung dari quantity, unit_price, dan discount!
+WITH order_totals AS (
+    SELECT order_items.order_id,
+        SUM((order_items.quantity * order_items.unit_price) - order_items.discount) AS product_total
+    FROM order_items
+    GROUP BY order_items.order_id
+)
+SELECT order_totals.order_id,
+    order_totals.product_total
+FROM order_totals;
+
+-- 27. Gunakan CTE untuk menghitung total_quantity dan total_sales setiap produk. Tampilkan product_name, total_quantity, dan total_sales lalu urutkan berdasarkan total_sales terbesar!
+WITH product_stats AS (
+    SELECT order_items.product_id,
+        SUM(order_items.quantity) AS total_quantity,
+        SUM((order_items.quantity * order_items.unit_price) - order_items.discount) AS total_sales
+    FROM order_items
+    GROUP BY order_items.product_id
+)
+SELECT products.product_name,
+    product_stats.total_quantity,
+    product_stats.total_sales
+FROM products
+JOIN product_stats ON products.product_id = product_stats.product_id
+ORDER BY product_stats.total_sales DESC;
+
+-- 28. Gunakan CTE untuk menghitung product_total setiap order. Gabungkan hasilnya dengan orders dan customers untuk menampilkan order_code, full_name, product_total, shipping_cost, dan grand_total. Urutkan dari grand_total terbesar!
+WITH order_totals AS (
+    SELECT order_items.order_id,
+        SUM((order_items.quantity * order_items.unit_price) - order_items.discount) AS product_total
+    FROM order_items
+    GROUP BY order_items.order_id
+)
+SELECT orders.order_code,
+    customers.full_name,
+    order_totals.product_total,
+    orders.shipping_cost,
+    (order_totals.product_total + orders.shipping_cost) AS grand_total
+FROM orders
+JOIN customers ON orders.customer_id = customers.customer_id
+JOIN order_totals ON orders.order_id = order_totals.order_id
+ORDER BY grand_total DESC;
+
+-- 29. Gunakan CTE untuk menghitung total belanja setiap customer. Tampilkan seluruh customer, termasuk yang belum pernah bertransaksi, dengan customer_id, full_name, total_orders, dan total_spending!
+WITH order_level_totals AS (
+    SELECT orders.customer_id,
+        orders.order_id,
+        orders.shipping_cost,
+        SUM((order_items.quantity * order_items.unit_price) - order_items.discount) AS product_total
+    FROM orders
+    JOIN order_items ON orders.order_id = order_items.order_id
+    GROUP BY orders.customer_id, orders.order_id, orders.shipping_cost
+),
+customer_totals AS (
+    SELECT order_level_totals.customer_id,
+        COUNT(order_level_totals.order_id) AS total_orders,
+        SUM(order_level_totals.product_total + order_level_totals.shipping_cost) AS total_spending
+    FROM order_level_totals
+    GROUP BY order_level_totals.customer_id
+)
+SELECT customers.customer_id,
+    customers.full_name,
+    COALESCE(customer_totals.total_orders, 0) AS total_orders,
+    COALESCE(customer_totals.total_spending, 0) AS total_spending
+FROM customers
+LEFT JOIN customer_totals ON customers.customer_id = customer_totals.customer_id;
+
+-- 30. Tampilkan order yang grand_total-nya lebih besar daripada rata-rata grand_total seluruh order. Tampilkan order_code, full_name, grand_total, avg_grand_total, dan difference_from_average!
+WITH order_totals AS (
+    SELECT orders.order_id,
+        orders.order_code,
+        orders.customer_id,
+        orders.shipping_cost,
+        SUM((order_items.quantity * order_items.unit_price) - order_items.discount) AS product_total
+    FROM orders
+    JOIN order_items ON orders.order_id = order_items.order_id
+    GROUP BY orders.order_id, orders.order_code, orders.customer_id, orders.shipping_cost
+),
+grand_totals AS (
+    SELECT order_totals.order_code,
+        order_totals.customer_id,
+        (order_totals.product_total + order_totals.shipping_cost) AS grand_total
+    FROM order_totals
+)
+SELECT grand_totals.order_code,
+    customers.full_name,
+    grand_totals.grand_total,
+    (SELECT AVG(grand_total) FROM grand_totals) AS avg_grand_total,
+    (grand_totals.grand_total - (SELECT AVG(grand_total) FROM grand_totals)) AS difference_from_average
+FROM grand_totals
+JOIN customers ON grand_totals.customer_id = customers.customer_id
+WHERE grand_totals.grand_total > (SELECT AVG(grand_total) FROM grand_totals);
+
+-- 31. Tampilkan customer yang total_spending-nya lebih besar daripada rata-rata total_spending customer yang pernah bertransaksi. Tampilkan customer_id, full_name, total_orders, total_spending, dan avg_customer_spending!
+WITH order_level_totals AS (
+    SELECT orders.customer_id,
+        orders.order_id,
+        orders.shipping_cost,
+        SUM((order_items.quantity * order_items.unit_price) - order_items.discount) AS product_total
+    FROM orders
+    JOIN order_items ON orders.order_id = order_items.order_id
+    GROUP BY orders.customer_id, orders.order_id, orders.shipping_cost
+),
+customer_totals AS (
+    SELECT order_level_totals.customer_id,
+        COUNT(order_level_totals.order_id) AS total_orders,
+        SUM(order_level_totals.product_total + order_level_totals.shipping_cost) AS total_spending
+    FROM order_level_totals
+    GROUP BY order_level_totals.customer_id
+)
+SELECT customers.customer_id,
+    customers.full_name,
+    customer_totals.total_orders,
+    customer_totals.total_spending,
+    (SELECT AVG(total_spending) FROM customer_totals) AS avg_customer_spending
+FROM customers
+JOIN customer_totals ON customers.customer_id = customer_totals.customer_id
+WHERE customer_totals.total_spending > (SELECT AVG(total_spending) FROM customer_totals);
+
+-- 32. Buat VIEW v_product_category yang menampilkan product_id, product_code, product_name, category_name, price, stock, dan is_active!
+CREATE OR REPLACE VIEW v_product_category AS
+SELECT products.product_id,
+    products.product_code,
+    products.product_name,
+    categories.category_name,
+    products.price,
+    products.stock,
+    products.is_active
+FROM products
+JOIN categories ON products.category_id = categories.category_id;
+
+-- 33. Gunakan v_product_category untuk menampilkan produk dengan price > 100.000 dan urutkan berdasarkan price tertinggi!
+SELECT *
+FROM v_product_category
+WHERE v_product_category.price > 100000
+ORDER BY v_product_category.price DESC;
+
+-- 34. Buat VIEW v_order_detail yang menampilkan order_code, order_date, full_name, city, product_name, category_name, quantity, unit_price, discount, subtotal, payment_method, dan payment_status!
+CREATE OR REPLACE VIEW v_order_detail AS
+SELECT orders.order_code,
+    orders.order_date,
+    customers.full_name,
+    addresses.city,
+    products.product_name,
+    categories.category_name,
+    order_items.quantity,
+    order_items.unit_price,
+    order_items.discount,
+    (order_items.quantity * order_items.unit_price) - order_items.discount AS subtotal,
+    payments.payment_method,
+    payments.payment_status
+FROM orders
+JOIN customers ON orders.customer_id = customers.customer_id
+JOIN addresses ON orders.shipping_address_id = addresses.address_id
+JOIN order_items ON orders.order_id = order_items.order_id
+JOIN products ON order_items.product_id = products.product_id
+JOIN categories ON products.category_id = categories.category_id
+LEFT JOIN payments ON orders.order_id = payments.order_id;
+
+-- 35. Gunakan v_order_detail untuk menampilkan category_name, total_quantity, dan total_sales hanya untuk transaksi dengan payment_status = paid. Kelompokkan per kategori dan urutkan berdasarkan total_sales terbesar!
+SELECT v_order_detail.category_name,
+    SUM(v_order_detail.quantity) AS total_quantity,
+    SUM(v_order_detail.subtotal) AS total_sales
+FROM v_order_detail
+WHERE v_order_detail.payment_status = 'paid'
+GROUP BY v_order_detail.category_name
+ORDER BY total_sales DESC;
+
+-- 36. Buat VIEW v_customer_summary yang menampilkan seluruh customer, termasuk yang belum pernah order: customer_id, full_name, city, total_orders, total_quantity, total_spending, dan last_order_date. Setelah view dibuat, tampilkan customer dengan total_spending > 1.000.000!
+CREATE OR REPLACE VIEW v_customer_summary AS
+WITH order_summary AS (
+    SELECT orders.customer_id,
+        orders.order_id,
+        orders.order_date,
+        orders.shipping_cost,
+        SUM(order_items.quantity) AS order_quantity,
+        SUM((order_items.quantity * order_items.unit_price) - order_items.discount) AS product_total
+    FROM orders
+    JOIN order_items ON orders.order_id = order_items.order_id
+    GROUP BY orders.customer_id, orders.order_id, orders.order_date, orders.shipping_cost
+),
+customer_totals AS (
+    SELECT order_summary.customer_id,
+        COUNT(order_summary.order_id) AS total_orders,
+        SUM(order_summary.order_quantity) AS total_quantity,
+        SUM(order_summary.product_total + order_summary.shipping_cost) AS total_spending,
+        MAX(order_summary.order_date) AS last_order_date
+    FROM order_summary
+    GROUP BY order_summary.customer_id
+)
+SELECT customers.customer_id,
+    customers.full_name,
+    addresses.city,
+    COALESCE(customer_totals.total_orders, 0) AS total_orders,
+    COALESCE(customer_totals.total_quantity, 0) AS total_quantity,
+    COALESCE(customer_totals.total_spending, 0) AS total_spending,
+    customer_totals.last_order_date
+FROM customers
+LEFT JOIN addresses ON customers.customer_id = addresses.customer_id AND addresses.is_primary = TRUE
+LEFT JOIN customer_totals ON customers.customer_id = customer_totals.customer_id;
+
+SELECT *
+FROM v_customer_summary
+WHERE v_customer_summary.total_spending > 1000000;
+
+-- 37. Tampilkan product_name, price, dan row_number berdasarkan price tertinggi. Gunakan ROW_NUMBER()!
+SELECT products.product_name,
+    products.price,
+    ROW_NUMBER() OVER (ORDER BY products.price DESC) AS row_number
+FROM products;
+
+-- 38. Tampilkan product_name, stock, rank_stock, dan dense_rank_stock berdasarkan stock tertinggi. Gunakan RANK() dan DENSE_RANK()!
+SELECT products.product_name,
+    products.stock,
+    RANK() OVER (ORDER BY products.stock DESC) AS rank_stock,
+    DENSE_RANK() OVER (ORDER BY products.stock DESC) AS dense_rank_stock
+FROM products;
+
+-- 39. Tampilkan category_name, product_name, price, dan rank_in_category. Ranking price harus dihitung terpisah untuk setiap kategori!
+SELECT categories.category_name,
+    products.product_name,
+    products.price,
+    RANK() OVER (PARTITION BY categories.category_id ORDER BY products.price DESC) AS rank_in_category
+FROM products
+JOIN categories ON products.category_id = categories.category_id;
+
+-- 40. Hitung total_sales setiap kategori, kemudian tampilkan category_name, total_sales, marketplace_total, dan sales_percentage terhadap total seluruh kategori!
+WITH category_sales AS (
+    SELECT categories.category_name,
+        SUM((order_items.quantity * order_items.unit_price) - order_items.discount) AS total_sales
+    FROM categories
+    JOIN products ON categories.category_id = products.category_id
+    JOIN order_items ON products.product_id = order_items.product_id
+    GROUP BY categories.category_id, categories.category_name
+)
+SELECT category_sales.category_name,
+    category_sales.total_sales,
+    SUM(category_sales.total_sales) OVER () AS marketplace_total,
+    ROUND((category_sales.total_sales / SUM(category_sales.total_sales) OVER ()) * 100, 2) AS sales_percentage
+FROM category_sales;
+
+-- 41. Hitung grand_total setiap order lalu tampilkan order_date, order_code, grand_total, dan running_total berdasarkan urutan tanggal order!
+WITH order_totals AS (
+    SELECT orders.order_id,
+        orders.order_date,
+        orders.order_code,
+        orders.shipping_cost,
+        SUM((order_items.quantity * order_items.unit_price) - order_items.discount) AS product_total
+    FROM orders
+    JOIN order_items ON orders.order_id = order_items.order_id
+    GROUP BY orders.order_id, orders.order_date, orders.order_code, orders.shipping_cost
+)
+SELECT order_totals.order_date,
+    order_totals.order_code,
+    (order_totals.product_total + order_totals.shipping_cost) AS grand_total,
+    SUM(order_totals.product_total + order_totals.shipping_cost) OVER (ORDER BY order_totals.order_date) AS running_total
+FROM order_totals;
+
+-- 42. Hitung grand_total setiap order dan tampilkan order_date, order_code, grand_total, previous_order_total, serta difference terhadap order sebelumnya. Gunakan LAG()!
+WITH order_totals AS (
+    SELECT orders.order_id,
+        orders.order_date,
+        orders.order_code,
+        orders.shipping_cost,
+        SUM((order_items.quantity * order_items.unit_price) - order_items.discount) AS product_total
+    FROM orders
+    JOIN order_items ON orders.order_id = order_items.order_id
+    GROUP BY orders.order_id, orders.order_date, orders.order_code, orders.shipping_cost
+)
+SELECT order_totals.order_date,
+    order_totals.order_code,
+    (order_totals.product_total + order_totals.shipping_cost) AS grand_total,
+    LAG(order_totals.product_total + order_totals.shipping_cost) OVER (ORDER BY order_totals.order_date) AS previous_order_total,
+    (order_totals.product_total + order_totals.shipping_cost) - LAG(order_totals.product_total + order_totals.shipping_cost) OVER (ORDER BY order_totals.order_date) AS difference
+FROM order_totals;
+
+-- 43. Kembangkan soal sebelumnya sehingga menampilkan order_date, order_code, grand_total, previous_order_total, difference, dan percentage_change terhadap order sebelumnya!
+WITH order_totals AS (
+    SELECT orders.order_id,
+        orders.order_date,
+        orders.order_code,
+        orders.shipping_cost,
+        SUM((order_items.quantity * order_items.unit_price) - order_items.discount) AS product_total
+    FROM orders
+    JOIN order_items ON orders.order_id = order_items.order_id
+    GROUP BY orders.order_id, orders.order_date, orders.order_code, orders.shipping_cost
+),
+lagged_totals AS (
+    SELECT order_totals.order_date,
+        order_totals.order_code,
+        (order_totals.product_total + order_totals.shipping_cost) AS grand_total,
+        LAG(order_totals.product_total + order_totals.shipping_cost) OVER (ORDER BY order_totals.order_date) AS previous_order_total
+    FROM order_totals
+)
+SELECT lagged_totals.order_date,
+    lagged_totals.order_code,
+    lagged_totals.grand_total,
+    lagged_totals.previous_order_total,
+    (lagged_totals.grand_total - lagged_totals.previous_order_total) AS difference,
+    ROUND(((lagged_totals.grand_total - lagged_totals.previous_order_total) / lagged_totals.previous_order_total) * 100, 2) AS percentage_change
+FROM lagged_totals;
+
+-- 44. Jalankan EXPLAIN terhadap query yang mencari produk dengan stock >= 100. Catat jenis scan, estimated cost, estimated rows, dan width!
+EXPLAIN SELECT * FROM products WHERE stock >= 100;
+
+-- 45. Jalankan query yang sama dengan EXPLAIN ANALYZE. Catat actual rows, Planning Time, dan Execution Time lalu bandingkan dengan estimate!
+EXPLAIN ANALYZE SELECT * FROM products WHERE stock >= 100;
+
+-- 46. Gunakan EXPLAIN ANALYZE pada query JOIN orders, customers, order_items, dan products. Identifikasi jenis scan dan jenis join yang dipilih PostgreSQL!
+EXPLAIN ANALYZE 
+SELECT orders.order_code, customers.full_name, products.product_name
+FROM orders
+JOIN customers ON orders.customer_id = customers.customer_id
+JOIN order_items ON orders.order_id = order_items.order_id
+JOIN products ON order_items.product_id = products.product_id;
+
+-- 47. Gunakan EXPLAIN ANALYZE pada query yang menghitung total_quantity dan total_sales per kategori. Identifikasi operator agregasi yang dipilih PostgreSQL!
+EXPLAIN ANALYZE
+SELECT categories.category_name,
+    SUM(order_items.quantity) AS total_quantity,
+    SUM((order_items.quantity * order_items.unit_price) - order_items.discount) AS total_sales
+FROM categories
+JOIN products ON categories.category_id = products.category_id
+JOIN order_items ON products.product_id = order_items.product_id
+GROUP BY categories.category_id, categories.category_name;
+
+-- 48. Bandingkan execution plan pencarian order berdasarkan customer_id sebelum dan sesudah membuat index pada orders(customer_id). Setelah membuat index, jalankan ANALYZE orders lalu EXPLAIN ANALYZE kembali!
+EXPLAIN ANALYZE SELECT * FROM orders WHERE customer_id = 1;
+
+CREATE INDEX idx_orders_customer_id ON orders(customer_id);
+ANALYZE orders;
+
+EXPLAIN ANALYZE SELECT * FROM orders WHERE customer_id = 1;
+
+-- 49. Gunakan EXPLAIN ANALYZE pada query window function yang menghitung grand_total, previous_order_total, difference, dan percentage_change. Identifikasi scan, join, aggregate, sort, dan operator window yang muncul!
+EXPLAIN ANALYZE
+WITH order_totals AS (
+    SELECT orders.order_id,
+        orders.order_date,
+        orders.order_code,
+        orders.shipping_cost,
+        SUM((order_items.quantity * order_items.unit_price) - order_items.discount) AS product_total
+    FROM orders
+    JOIN order_items ON orders.order_id = order_items.order_id
+    GROUP BY orders.order_id, orders.order_date, orders.order_code, orders.shipping_cost
+),
+lagged_totals AS (
+    SELECT order_totals.order_date,
+        order_totals.order_code,
+        (order_totals.product_total + order_totals.shipping_cost) AS grand_total,
+        LAG(order_totals.product_total + order_totals.shipping_cost) OVER (ORDER BY order_totals.order_date) AS previous_order_total
+    FROM order_totals
+)
+SELECT lagged_totals.order_date,
+    lagged_totals.order_code,
+    lagged_totals.grand_total,
+    lagged_totals.previous_order_total,
+    (lagged_totals.grand_total - lagged_totals.previous_order_total) AS difference,
+    ROUND(((lagged_totals.grand_total - lagged_totals.previous_order_total) / lagged_totals.previous_order_total) * 100, 2) AS percentage_change
+FROM lagged_totals;
