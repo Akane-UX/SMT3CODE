@@ -6,12 +6,31 @@ SELECT * FROM products;
 SELECT * FROM orders;
 SELECT * FROM order_items;
 SELECT * FROM payments;
--- Tampilkan jumlah pembayaran berstatus paid, total nominalnya, rata-rata nominal, nominal
+
+-- 1. Tampilkan jumlah pembayaran berstatus paid, total nominalnya, rata-rata nominal, nominal
 -- tertinggi, dan nominal terendah dari tabel payments. Hanya hitung pembayaran dengan
 -- payment_status = paid.
+
+SELECT
+    COUNT (payment_status) AS total_paid,
+    SUM (amount) AS total_nominal,
+    AVG (amount) AS rata_nominal,
+    Max (amount) AS nominal_tertinggi,
+    MIN (amount) AS nominal_terendah
+    FROM payments
+    WHERE payment_status = 'paid';
+
 -- 2. Tampilkan payment_method, jumlah transaksi pembayaran, total nominal, dan rata-rata nominal
 -- pada setiap metode pembayaran, termasuk semua status pembayaran. Kelompokkan per metode
 -- dan urutkan dari total nominal terbesar.
+SELECT
+    payment_method,
+    COUNT(payment_method) AS jumlah_pembayaran,
+    SUM(amount) AS total_nominal,
+    AVG(amount) AS rata_nominal
+    FROM payments
+    GROUP BY payment_method
+    ORDER BY total_nominal;
 -- 3. Tampilkan status pesanan, jumlah pesanan, total biaya pengiriman, serta rata-rata biaya
 -- pengiriman. Hanya tampilkan kelompok status dengan total biaya pengiriman lebih dari 50.000.
 -- Urutkan dari total biaya pengiriman terbesar.
