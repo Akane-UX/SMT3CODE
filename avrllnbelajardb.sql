@@ -930,9 +930,27 @@ ORDER BY
     tahun_registrasi,
     bulan_registrasi;
 
+
 -- 5. Tampilkan order_code, city tujuan pengiriman, shipping_cost, payment_method, amount, dan
 -- payment_status. Ambil data dari orders, addresses, dan payments. Urutkan berdasarkan
 -- order_code.
+
+SELECT * FROM addresses, orders, payments;
+
+SELECT
+    o.order_code,
+    a.city,
+    o.shipping_cost,
+    p.payment_method,
+    p.amount,
+    p.payment_status
+FROM orders AS o
+JOIN addresses AS a
+    ON a.address_id = o.shipping_address_id
+LEFT JOIN payments AS p
+    ON p.order_id = o.order_id
+ORDER BY o.order_code;
+
 -- 6. Tampilkan customer_code, full_name, registered_at, order_code, order_date, city tujuan
 -- pengiriman, dan lama_hari_dari_registrasi_ke_order. Lama hari diperoleh dari tanggal order
 -- dikurangi tanggal registrasi, tanpa menghitung jam.
