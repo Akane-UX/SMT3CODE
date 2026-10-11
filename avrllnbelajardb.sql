@@ -954,6 +954,21 @@ ORDER BY o.order_code;
 -- 6. Tampilkan customer_code, full_name, registered_at, order_code, order_date, city tujuan
 -- pengiriman, dan lama_hari_dari_registrasi_ke_order. Lama hari diperoleh dari tanggal order
 -- dikurangi tanggal registrasi, tanpa menghitung jam.
+SELECT
+    c.customer_code,
+    c.full_name,
+    c.registered_at,
+    o.order_code,
+    o.order_date,
+    a.city AS city_tujuan_pengiriman,
+    o.order_date::date - c.registered_at::date AS lama_hari_dari_registrasi_ke_order
+FROM customers AS c
+JOIN orders AS o
+    ON o.customer_id = c.customer_id
+JOIN addresses AS a
+    ON a.address_id = o.shipping_address_id
+ORDER BY o.order_date, o.order_code;
+
 -- 7. Tampilkan order_code, city tujuan, category_name, product_name, quantity, weight_gram, dan
 -- berat_item_total_gram untuk setiap item pesanan. Berat item total = quantity × weight_gram.
 -- Gunakan orders, addresses, order_items, products, dan categories.
