@@ -30,16 +30,51 @@ SELECT
     AVG(amount) AS rata_nominal
     FROM payments
     GROUP BY payment_method
-    ORDER BY total_nominal;
+    ORDER BY total_nominal DESC;
 -- 3. Tampilkan status pesanan, jumlah pesanan, total biaya pengiriman, serta rata-rata biaya
 -- pengiriman. Hanya tampilkan kelompok status dengan total biaya pengiriman lebih dari 50.000.
 -- Urutkan dari total biaya pengiriman terbesar.
+SELECT
+    status,
+    COUNT(order_id) AS jumlah_pesanan,
+    SUM(shipping_cost) AS total_biaya,
+    AVG(shipping_cost) AS rata2_biaya_pengiriman
+    FROM orders
+    GROUP BY status
+    HAVING SUM(shipping_cost) > 50000
+    ORDER BY total_biaya DESC;
 -- 4. Tampilkan tahun registrasi, bulan registrasi, dan jumlah customer yang terdaftar pada setiap
 -- kombinasi tahun dan bulan dari kolom registered_at. Gunakan EXTRACT dan urutkan secara
 -- kronologis.
+SELECT
+    EXTRACT(YEAR FROM registered_at) AS TAHUN,
+    EXTRACT(MONTH FROM registered_at) AS BULAN,
+    COUNT (*) AS JUMLAH_CUSTOMERS
+    FROM customers
+    GROUP BY
+        TAHUN,
+        BULAN
+    ORDER BY
+        TAHUN,
+        BULAN;
+
 -- 5. Tampilkan order_code, city tujuan pengiriman, shipping_cost, payment_method, amount, dan
 -- payment_status. Ambil data dari orders, addresses, dan payments. Urutkan berdasarkan
 -- order_code.
+SELECT
+    o.order_code,
+    a.city,
+    o.shipping_cost,
+    p.payment_method,
+    p.amount,
+    p.payment_status
+FROM orders AS o
+LEFT JOIN addresses AS a
+    ON o.customer_id = a.customer_id
+JOIN payments AS p
+    ON p.order_id = o.order_id
+ORDER BY
+    order_code;
 -- 6. Tampilkan customer_code, full_name, registered_at, order_code, order_date, city tujuan
 -- pengiriman, dan lama_hari_dari_registrasi_ke_order. Lama hari diperoleh dari tanggal order
 -- dikurangi tanggal registrasi, tanpa menghitung jam.
