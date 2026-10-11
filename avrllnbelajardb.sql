@@ -972,22 +972,137 @@ ORDER BY o.order_date, o.order_code;
 -- 7. Tampilkan order_code, city tujuan, category_name, product_name, quantity, weight_gram, dan
 -- berat_item_total_gram untuk setiap item pesanan. Berat item total = quantity × weight_gram.
 -- Gunakan orders, addresses, order_items, products, dan categories.
+SELECT
+    o.order_code,
+    a.city,
+    c.category_name,
+    p.product_name,
+    oi.quantity,
+    p.weight_gram,
+    oi.quantity * p.weight_gram AS berat_item_total_gram
+FROM orders AS o
+JOIN addresses AS a
+    ON a.address_id = o.shipping_address_id
+JOIN order_items AS oi
+    ON oi.order_id = o.order_id
+JOIN products AS p
+    ON p.product_id = oi.product_id
+JOIN categories AS c
+    ON c.category_id = p.category_id
+ORDER BY o.order_code, p.product_name;
+
 -- 8. Kembangkan laporan berat item: tampilkan order_code, full_name, city, category_name,
 -- product_name, quantity, berat_item_total_gram, dan kategori_berat_item. Jika berat item total >=
 -- 5.000 gram, kategorinya Berat; jika >= 1.000 gram, Sedang; selain itu Ringan. Gunakan enam
 -- tabel yang relevan.
+SELECT
+    o.order_code,
+    cu.full_name,
+    a.city,
+    c.category_name,
+    p.product_name,
+    oi.quantity,
+    oi.quantity * p.weight_gram AS berat_item_total_gram,
+    CASE
+        WHEN p.weight_gram IS NULL THEN 'Tidak diketahui'
+        WHEN oi.quantity * p.weight_gram >= 5000 THEN 'Berat'
+        WHEN oi.quantity * p.weight_gram >= 1000 THEN 'Sedang'
+        ELSE 'Ringan'
+    END AS kategori_berat_item
+FROM orders AS o
+JOIN customers AS cu
+    ON cu.customer_id = o.customer_id
+JOIN addresses AS a
+    ON a.address_id = o.shipping_address_id
+JOIN order_items AS oi
+    ON oi.order_id = o.order_id
+JOIN products AS p
+    ON p.product_id = oi.product_id
+JOIN categories AS c
+    ON c.category_id = p.category_id
+ORDER BY o.order_code, p.product_name;
+
 -- 9. Tampilkan order_code, full_name, city, product_name, category_name, berat_item_total_gram,
 -- payment_method, dan payment_status. Gunakan ketujuh tabel yang relevan. Tampilkan hanya
 -- transaksi yang menggunakan QRIS atau Transfer Bank.
+SELECT
+    o.order_code,
+    cu.full_name,
+    a.city,
+    p.product_name,
+    c.category_name,
+    oi.quantity * p.weight_gram AS berat_item_total_gram,
+    pay.payment_method,
+    pay.payment_status
+FROM orders AS o
+JOIN customers AS cu
+    ON cu.customer_id = o.customer_id
+JOIN addresses AS a
+    ON a.address_id = o.shipping_address_id
+JOIN order_items AS oi
+    ON oi.order_id = o.order_id
+JOIN products AS p
+    ON p.product_id = oi.product_id
+JOIN categories AS c
+    ON c.category_id = p.category_id
+JOIN payments AS pay
+    ON pay.order_id = o.order_id
+WHERE pay.payment_method IN ('QRIS', 'Transfer Bank')
+ORDER BY o.order_code, p.product_name;
+
 -- 10. Tampilkan product_code, product_name, category_name, stock, price, nilai_persediaan, dan
 -- status_stok. Nilai persediaan = stock × price. Jika stock < 60, status stok = Perlu Restok; jika
 -- stock <= 100, status stok = Cukup; selain itu = Melimpah. Urutkan dari nilai persediaan tertinggi.
+SELECT
+    p.product_code,
+    p.product_name,
+    c.category_name,
+    p.stock,
+    p.price,
+    p.stock * p.price AS nilai_persediaan,
+    CASE
+        WHEN p.stock < 60 THEN 'Perlu Restok'
+        WHEN p.stock <= 100 THEN 'Cukup'
+        ELSE 'Melimpah'
+    END AS status_stok
+FROM products AS p
+JOIN categories AS c
+    ON c.category_id = p.category_id
+ORDER BY nilai_persediaan DESC, p.product_code;
+
 -- 11. Tampilkan kota tujuan pengiriman, jumlah pesanan, total biaya pengiriman, dan rata-rata biaya
 -- pengiriman. Gunakan addresses dan orders. Hanya tampilkan kota dengan rata-rata biaya
 -- pengiriman di atas 20.000.
+SELECT
+    a.city AS kota_tujuan_pengiriman,
+    COUNT(*) AS jumlah_pesanan,
+    SUM(o.shipping_cost) AS total_biaya_pengiriman,
+    AVG(o.shipping_cost) AS rata_rata_biaya_pengiriman
+FROM orders AS o
+JOIN addresses AS a
+    ON a.address_id = o.shipping_address_id
+GROUP BY a.city
+HAVING AVG(o.shipping_cost) > 20000
+ORDER BY rata_rata_biaya_pengiriman DESC, a.city;
+
 -- 12. Tampilkan status pesanan, jumlah produk berbeda yang dipesan, total unit barang, dan total berat
 -- seluruh item dalam gram. Gunakan orders, order_items, dan products. Hanya tampilkan status
 -- dengan total berat lebih dari 10.000 gram.
+SELECT
+    o.status AS status_pesanan,
+    COUNT(DISTINCT oi.product_id) AS jumlah_produk_berbeda,
+    SUM(oi.quantity) AS total_unit_barang,
+    SUM(oi.quantity * p.weight_gram) AS total_berat_gram
+FROM orders AS o
+JOIN order_items AS oi
+    ON oi.order_id = o.order_id
+JOIN products AS p
+    ON p.product_id = oi.product_id
+GROUP BY o.status
+HAVING COUNT(p.weight_gram) = COUNT(*)
+   AND SUM(oi.quantity * p.weight_gram) > 10000
+ORDER BY total_berat_gram DESC, o.status;
+
 -- 13. Tampilkan order_code, status, dan shipping_cost dari pesanan yang biaya pengirimannya lebih
 -- besar daripada rata-rata biaya pengiriman seluruh pesanan. Urutkan dari biaya tertinggi.
 -- 14. Tampilkan customer_code, full_name, dan email untuk customer yang pernah menggunakan E-
