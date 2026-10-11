@@ -1022,9 +1022,7 @@ JOIN categories AS c
     ON c.category_id = p.category_id
 ORDER BY o.order_code, p.product_name;
 
--- 9. Tampilkan order_code, full_name, city, product_name, category_name, berat_item_total_gram,
--- payment_method, dan payment_status. Gunakan ketujuh tabel yang relevan. Tampilkan hanya
--- transaksi yang menggunakan QRIS atau Transfer Bank.
+-- 9. Tampilkan order_code, full_name, city, product_name, category_name, berat_item_total_gram, payment_method, dan payment_status. Gunakan ketujuh tabel yang relevan. Tampilkan hanya transaksi yang menggunakan QRIS atau Transfer Bank.
 SELECT
     o.order_code,
     cu.full_name,
@@ -1070,9 +1068,8 @@ JOIN categories AS c
     ON c.category_id = p.category_id
 ORDER BY nilai_persediaan DESC, p.product_code;
 
--- 11. Tampilkan kota tujuan pengiriman, jumlah pesanan, total biaya pengiriman, dan rata-rata biaya
--- pengiriman. Gunakan addresses dan orders. Hanya tampilkan kota dengan rata-rata biaya
--- pengiriman di atas 20.000.
+-- 11. Tampilkan kota tujuan pengiriman, jumlah pesanan, total biaya pengiriman, dan rata-rata biaya pengiriman. Gunakan addresses dan orders. Hanya tampilkan kota dengan rata-rata biaya pengiriman di atas 20.000.
+
 SELECT
     a.city AS kota_tujuan_pengiriman,
     COUNT(*) AS jumlah_pesanan,
@@ -1085,9 +1082,8 @@ GROUP BY a.city
 HAVING AVG(o.shipping_cost) > 20000
 ORDER BY rata_rata_biaya_pengiriman DESC, a.city;
 
--- 12. Tampilkan status pesanan, jumlah produk berbeda yang dipesan, total unit barang, dan total berat
--- seluruh item dalam gram. Gunakan orders, order_items, dan products. Hanya tampilkan status
--- dengan total berat lebih dari 10.000 gram.
+-- 12. Tampilkan status pesanan, jumlah produk berbeda yang dipesan, total unit barang, dan total berat seluruh item dalam gram. Gunakan orders, order_items, dan products. Hanya tampilkan status dengan total berat lebih dari 10.000 gram.
+
 SELECT
     o.status AS status_pesanan,
     COUNT(DISTINCT oi.product_id) AS jumlah_produk_berbeda,
@@ -1105,38 +1101,214 @@ ORDER BY total_berat_gram DESC, o.status;
 
 -- 13. Tampilkan order_code, status, dan shipping_cost dari pesanan yang biaya pengirimannya lebih
 -- besar daripada rata-rata biaya pengiriman seluruh pesanan. Urutkan dari biaya tertinggi.
+SELECT
+    orders.order_code,
+    orders.status,
+    orders.shipping_cost
+FROM orders
+WHERE orders.shipping_cost > (SELECT AVG(shipping_cost) FROM orders)
+ORDER BY orders.shipping_cost DESC;
+
 -- 14. Tampilkan customer_code, full_name, dan email untuk customer yang pernah menggunakan E-
 -- Wallet atau Virtual Account dengan status pembayaran paid.
+SELECT DISTINCT
+    customers.customer_code,
+    customers.full_name,
+    customers.email
+FROM customers
+JOIN orders ON orders.customer_id = customers.customer_id
+JOIN payments ON payments.order_id = orders.order_id
+WHERE payments.payment_method IN ('E-Wallet', 'Virtual Account')
+  AND payments.payment_status = 'paid'
+ORDER BY customers.customer_code;
+
 -- 15. Tampilkan payment_id, order_id, payment_method, amount, dan payment_status untuk
 -- pembayaran paid yang memiliki nominal tertinggi di antara semua pembayaran paid.
+SELECT
+    payments.payment_id,
+    payments.order_id,
+    payments.payment_method,
+    payments.amount,
+    payments.payment_status
+FROM payments
+WHERE payments.payment_status = 'paid'
+  AND payments.amount = (
+      SELECT MAX(amount)
+      FROM payments
+      WHERE payment_status = 'paid'
+  );
+
 -- 16. Tampilkan customer_code, full_name, dan email untuk customer yang belum mempunyai
 -- pembayaran dengan status paid, termasuk customer yang belum pernah memesan.
+SELECT
+    customers.customer_code,
+    customers.full_name,
+    customers.email
+FROM customers
+WHERE customers.customer_id NOT IN (
+    SELECT orders.customer_id
+    FROM orders
+    JOIN payments ON payments.order_id = orders.order_id
+    WHERE payments.payment_status = 'paid'
+)
+ORDER BY customers.customer_code;
+
 -- 17. Gunakan CTE berat_pesanan untuk menghitung total_berat_gram setiap order dari order_items
 -- dan products. Kemudian tampilkan order_code, city, total_berat_gram, dan total_berat_kg (gram
 -- / 1.000) dari setiap pesanan.
+WITH berat_pesanan AS (
+    SELECT
+        order_items.order_id,
+        SUM(order_items.quantity * products.weight_gram) AS total_berat_gram
+    FROM order_items
+    JOIN products ON products.product_id = order_items.product_id
+    GROUP BY order_items.order_id
+)
+SELECT
+    orders.order_code,
+    addresses.city,
+    berat_pesanan.total_berat_gram,
+    (berat_pesanan.total_berat_gram::numeric / 1000) AS total_berat_kg
+FROM orders
+JOIN addresses ON addresses.address_id = orders.shipping_address_id
+JOIN berat_pesanan ON berat_pesanan.order_id = orders.order_id
+ORDER BY orders.order_code;
+
 -- 18. Gunakan CTE untuk membuat ringkasan total berat per pesanan. Tampilkan order_code, status,
 -- total_berat_gram, dan kelas_paket: >= 10.000 gram = Paket Besar, >= 3.000 gram = Paket
 -- Sedang, selain itu = Paket Kecil. CASE diterapkan pada hasil CTE, bukan di dalam fungsi SUM.
+WITH ringkasan_berat AS (
+    SELECT
+        orders.order_id,
+        orders.order_code,
+        orders.status,
+        SUM(order_items.quantity * products.weight_gram) AS total_berat_gram
+    FROM orders
+    JOIN order_items ON order_items.order_id = orders.order_id
+    JOIN products ON products.product_id = order_items.product_id
+    GROUP BY orders.order_id, orders.order_code, orders.status
+)
+SELECT
+    ringkasan_berat.order_code,
+    ringkasan_berat.status,
+    ringkasan_berat.total_berat_gram,
+    CASE
+        WHEN ringkasan_berat.total_berat_gram >= 10000 THEN 'Paket Besar'
+        WHEN ringkasan_berat.total_berat_gram >= 3000 THEN 'Paket Sedang'
+        ELSE 'Paket Kecil'
+    END AS kelas_paket
+FROM ringkasan_berat
+ORDER BY ringkasan_berat.order_code;
+
 -- 19. Buat dua CTE: biaya_per_status untuk menjumlahkan shipping_cost per status pesanan, dan
 -- rata_rata_status untuk menghitung rata-rata total biaya dari seluruh kelompok status. Tampilkan
 -- status, total_biaya, rata_rata_total_biaya, dan selisih_biaya hanya untuk status dengan total biaya
 -- di atas rata-rata tersebut.
+WITH biaya_per_status AS (
+    SELECT
+        orders.status,
+        SUM(orders.shipping_cost) AS total_biaya
+    FROM orders
+    GROUP BY orders.status
+),
+rata_rata_status AS (
+    SELECT
+        AVG(biaya_per_status.total_biaya) AS rata_rata_total_biaya
+    FROM biaya_per_status
+)
+SELECT
+    biaya_per_status.status,
+    biaya_per_status.total_biaya,
+    rata_rata_status.rata_rata_total_biaya,
+    (biaya_per_status.total_biaya - rata_rata_status.rata_rata_total_biaya) AS selisih_biaya
+FROM biaya_per_status
+CROSS JOIN rata_rata_status
+WHERE biaya_per_status.total_biaya > rata_rata_status.rata_rata_total_biaya
+ORDER BY biaya_per_status.total_biaya DESC;
+
 -- 20. Buat VIEW bernama v_latihan_monitor_pengiriman yang menampilkan order_code, full_name,
 -- city, status_pesanan, shipping_cost, payment_method, payment_status, amount, dan
 -- nominal_di_luar_ongkir (amount - shipping_cost). Gunakan JOIN empat tabel. VIEW akan
 -- digunakan pada soal berikutnya.
+CREATE OR REPLACE VIEW v_latihan_monitor_pengiriman AS
+SELECT
+    orders.order_code,
+    customers.full_name,
+    addresses.city,
+    orders.status AS status_pesanan,
+    orders.shipping_cost,
+    payments.payment_method,
+    payments.payment_status,
+    payments.amount,
+    (payments.amount - orders.shipping_cost) AS nominal_di_luar_ongkir
+FROM orders
+JOIN customers ON customers.customer_id = orders.customer_id
+JOIN addresses ON addresses.address_id = orders.shipping_address_id
+JOIN payments ON payments.order_id = orders.order_id;
+
 -- 21. Gunakan VIEW v_latihan_monitor_pengiriman untuk menampilkan payment_method,
 -- jumlah_pesanan, dan total_ongkir. Kelompokkan berdasarkan payment_method; tampilkan
 -- hanya metode dengan total ongkir minimal 50.000.
+SELECT
+    v_latihan_monitor_pengiriman.payment_method,
+    COUNT(*) AS jumlah_pesanan,
+    SUM(v_latihan_monitor_pengiriman.shipping_cost) AS total_ongkir
+FROM v_latihan_monitor_pengiriman
+GROUP BY v_latihan_monitor_pengiriman.payment_method
+HAVING SUM(v_latihan_monitor_pengiriman.shipping_cost) >= 50000
+ORDER BY total_ongkir DESC;
+
 -- 22. Tampilkan payment_method, order_id, amount, dan urutan_nominal dalam masing-masing
 -- metode pembayaran. Nomor urut dimulai dari 1 pada setiap metode, berdasarkan amount
 -- tertinggi, dan stabilkan urutan dengan payment_id.
+SELECT
+    payments.payment_method,
+    payments.order_id,
+    payments.amount,
+    ROW_NUMBER() OVER (
+        PARTITION BY payments.payment_method
+        ORDER BY payments.amount DESC, payments.payment_id ASC
+    ) AS urutan_nominal
+FROM payments
+ORDER BY payments.payment_method, urutan_nominal;
+
 -- 23. Tampilkan order_code, status, shipping_cost, dan jumlah_pesanan_status untuk setiap pesanan.
 -- Kolom jumlah_pesanan_status menyatakan jumlah pesanan yang memiliki status sama, tanpa
 -- menghilangkan baris detail. Gunakan COUNT(*) OVER (PARTITION BY ...).
+SELECT
+    orders.order_code,
+    orders.status,
+    orders.shipping_cost,
+    COUNT(*) OVER (PARTITION BY orders.status) AS jumlah_pesanan_status
+FROM orders
+ORDER BY orders.order_code;
+
 -- 24. Tampilkan order_code, order_date, shipping_cost, ongkir_pesanan_sebelumnya, dan
 -- perubahan_ongkir dibandingkan pesanan sebelumnya secara kronologis. Gunakan LAG() dan
 -- urutkan dengan order_date serta order_id.
+SELECT
+    orders.order_code,
+    orders.order_date,
+    orders.shipping_cost,
+    LAG(orders.shipping_cost) OVER (
+        ORDER BY orders.order_date, orders.order_id
+    ) AS ongkir_pesanan_sebelumnya,
+    (orders.shipping_cost - LAG(orders.shipping_cost) OVER (
+        ORDER BY orders.order_date, orders.order_id
+    )) AS perubahan_ongkir
+FROM orders
+ORDER BY orders.order_date, orders.order_id;
+
 -- 25. Tampilkan order_code, status, shipping_cost, dan peringkat_ongkir_status dengan
 -- DENSE_RANK(). Peringkat biaya pengiriman tertinggi dihitung terpisah untuk masing-masing
--- status pesanan
+-- status pesanan.
+SELECT
+    orders.order_code,
+    orders.status,
+    orders.shipping_cost,
+    DENSE_RANK() OVER (
+        PARTITION BY orders.status
+        ORDER BY orders.shipping_cost DESC
+    ) AS peringkat_ongkir_status
+FROM orders
+ORDER BY orders.status, peringkat_ongkir_status, orders.order_code;
