@@ -1,0 +1,12 @@
+[workspace]
+members = [
+    "01_basics",
+    "02_ownership_borrowing",
+    "03_structs_enums",
+    "04_collections_error_handling",
+    "05_generics_traits_lifetimes",
+    "06_closures_iterators",
+    "07_smart_pointers_concurrency",
+    "08_mini_projects/minigrep",
+]
+resolver = "2"
