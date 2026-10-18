@@ -7,6 +7,6 @@ members = [
     "05_generics_traits_lifetimes",
     "06_closures_iterators",
     "07_smart_pointers_concurrency",
-    "08_mini_projects/minigrep",
+    "08_mini_projects/minigrep", "PJTEST", "PROJECT1", "RUST",
 ]
 resolver = "2"
