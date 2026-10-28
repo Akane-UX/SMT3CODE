@@ -1,0 +1,8 @@
+Rust:
+safe, fast, productive.
+Pick three.
+
+Duct tape, I need duct tape.
+To fix the leak.
+Trust me, Rust is fearless.
+Fearless concurrency awaits.
