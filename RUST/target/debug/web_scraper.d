@@ -1,0 +1,1 @@
+/home/avrlln/SMT3CODE/RUST/target/debug/web_scraper: /home/avrlln/SMT3CODE/RUST/web_scraper/src/main.rs /home/avrlln/SMT3CODE/RUST/web_scraper/src/models.rs /home/avrlln/SMT3CODE/RUST/web_scraper/src/scraper.rs /home/avrlln/SMT3CODE/RUST/web_scraper/src/storage.rs

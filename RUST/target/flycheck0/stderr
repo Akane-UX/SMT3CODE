@@ -1,8 +1,1 @@
-error: failed to load manifest for workspace member `/home/avrlln/SMT3CODE/RUST/PROJECT1`
-referenced by workspace at `/home/avrlln/SMT3CODE/RUST/Cargo.toml`
-
-Caused by:
-  failed to read `/home/avrlln/SMT3CODE/RUST/PROJECT1/Cargo.toml`
-
-Caused by:
-  No such file or directory (os error 2)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.35s
