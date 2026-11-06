@@ -1,0 +1,16 @@
+product_id,product_name,category,unit_price,stock,is_active
+1,Produk 01,Rumah Tangga,32500,100,true
+2,Produk 02,Elektronik,40000,100,true
+3,Produk 03,Pangan,47500,100,true
+4,Produk 04,Rumah Tangga,55000,100,true
+5,Produk 05,Elektronik,62500,100,true
+6,Produk 06,Pangan,70000,100,true
+7,Produk 07,Rumah Tangga,77500,100,true
+8,Produk 08,Elektronik,85000,100,true
+9,Produk 09,Pangan,92500,100,true
+10,Produk 10,Rumah Tangga,100000,100,true
+11,Produk 11,Elektronik,107500,100,true
+12,Produk 12,Pangan,25000,100,true
+13,Produk 13,Rumah Tangga,32500,100,true
+14,Produk 14,Elektronik,40000,100,true
+15,Produk 15,Pangan,47500,100,true
