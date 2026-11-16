@@ -1,0 +1,15 @@
+/home/avrlln/SMT3CODE/RUST/target/debug/build/markup5ever/eac0b529e4eac0c7/out/markup5ever-eac0b529e4eac0c7.d: /home/avrlln/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/markup5ever-0.12.1/lib.rs /home/avrlln/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/markup5ever-0.12.1/data/mod.rs /home/avrlln/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/markup5ever-0.12.1/interface/mod.rs /home/avrlln/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/markup5ever-0.12.1/interface/tree_builder.rs /home/avrlln/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/markup5ever-0.12.1/serialize.rs /home/avrlln/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/markup5ever-0.12.1/util/buffer_queue.rs /home/avrlln/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/markup5ever-0.12.1/util/smallcharset.rs /home/avrlln/SMT3CODE/RUST/target/debug/build/markup5ever/d2dbacf3da2ab590/out/generated.rs /home/avrlln/SMT3CODE/RUST/target/debug/build/markup5ever/d2dbacf3da2ab590/out/named_entities.rs
+
+/home/avrlln/SMT3CODE/RUST/target/debug/build/markup5ever/eac0b529e4eac0c7/out/libmarkup5ever-eac0b529e4eac0c7.rmeta: /home/avrlln/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/markup5ever-0.12.1/lib.rs /home/avrlln/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/markup5ever-0.12.1/data/mod.rs /home/avrlln/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/markup5ever-0.12.1/interface/mod.rs /home/avrlln/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/markup5ever-0.12.1/interface/tree_builder.rs /home/avrlln/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/markup5ever-0.12.1/serialize.rs /home/avrlln/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/markup5ever-0.12.1/util/buffer_queue.rs /home/avrlln/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/markup5ever-0.12.1/util/smallcharset.rs /home/avrlln/SMT3CODE/RUST/target/debug/build/markup5ever/d2dbacf3da2ab590/out/generated.rs /home/avrlln/SMT3CODE/RUST/target/debug/build/markup5ever/d2dbacf3da2ab590/out/named_entities.rs
+
+/home/avrlln/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/markup5ever-0.12.1/lib.rs:
+/home/avrlln/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/markup5ever-0.12.1/data/mod.rs:
+/home/avrlln/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/markup5ever-0.12.1/interface/mod.rs:
+/home/avrlln/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/markup5ever-0.12.1/interface/tree_builder.rs:
+/home/avrlln/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/markup5ever-0.12.1/serialize.rs:
+/home/avrlln/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/markup5ever-0.12.1/util/buffer_queue.rs:
+/home/avrlln/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/markup5ever-0.12.1/util/smallcharset.rs:
+/home/avrlln/SMT3CODE/RUST/target/debug/build/markup5ever/d2dbacf3da2ab590/out/generated.rs:
+/home/avrlln/SMT3CODE/RUST/target/debug/build/markup5ever/d2dbacf3da2ab590/out/named_entities.rs:
+
+# env-dep:OUT_DIR=/home/avrlln/SMT3CODE/RUST/target/debug/build/markup5ever/d2dbacf3da2ab590/out
