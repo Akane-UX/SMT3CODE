@@ -8,6 +8,7 @@ Script untuk menginisialisasi skema dan memuat dataset NusaMart ke 3 Node Postgr
 import csv
 import io
 import subprocess
+import sys
 from pathlib import Path
 
 BASE_DIR = Path(__file__).parent
@@ -15,13 +16,38 @@ DATASET_DIR = BASE_DIR / "dataset"
 SCHEMA_FILE = BASE_DIR / "sql" / "schema.sql"
 
 NODES = {
-    1: {"container": "nusamart-lab-pg-jakarta-1", "name": "Jakarta", "port": 5433},
-    2: {"container": "nusamart-lab-pg-surabaya-1", "name": "Surabaya", "port": 5434},
-    3: {"container": "nusamart-lab-pg-pontianak-1", "name": "Pontianak", "port": 5435},
+    1: {"container": "nusamart-lab-pg-jakarta-1", "alt_container": "pg-jakarta", "name": "Jakarta", "port": 5433},
+    2: {"container": "nusamart-lab-pg-surabaya-1", "alt_container": "pg-surabaya", "name": "Surabaya", "port": 5434},
+    3: {"container": "nusamart-lab-pg-pontianak-1", "alt_container": "pg-pontianak", "name": "Pontianak", "port": 5435},
 }
 
+_resolved_containers = {}
 
-def run_psql(container: str, query: str = None, file_path: Path = None):
+def get_container(node_info: dict) -> str:
+    name = node_info["name"]
+    if name in _resolved_containers:
+        return _resolved_containers[name]
+    
+    # Cek container utama
+    c1 = node_info["container"]
+    chk = subprocess.run(["docker", "inspect", c1], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    if chk.returncode == 0:
+        _resolved_containers[name] = c1
+        return c1
+    
+    # Fallback ke alt_container
+    c2 = node_info["alt_container"]
+    chk2 = subprocess.run(["docker", "inspect", c2], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    if chk2.returncode == 0:
+        _resolved_containers[name] = c2
+        return c2
+
+    _resolved_containers[name] = c1
+    return c1
+
+
+def run_psql(node_info: dict, query: str = None, file_path: Path = None):
+    container = get_container(node_info)
     cmd = ["docker", "exec", "-i", container, "psql", "-U", "lab", "-d", "nusamart", "-v", "ON_ERROR_STOP=1"]
     if query:
         cmd.extend(["-c", query])
@@ -33,7 +59,8 @@ def run_psql(container: str, query: str = None, file_path: Path = None):
             return res
 
 
-def copy_csv_to_table(container: str, table_name: str, columns: list, rows: list):
+def copy_csv_to_table(node_info: dict, table_name: str, columns: list, rows: list):
+    container = get_container(node_info)
     cols_str = f"({', '.join(columns)})"
     copy_sql = f"COPY {table_name} {cols_str} FROM STDIN WITH (FORMAT csv, HEADER true);"
     
@@ -69,9 +96,9 @@ def main():
     # 1. Pastikan skema dijalankan di ketiga node
     print("\n1. Membuat skema tabel di semua node...")
     for site_id, node in NODES.items():
-        res = run_psql(node["container"], file_path=SCHEMA_FILE)
+        res = run_psql(node, file_path=SCHEMA_FILE)
         if res and res.returncode == 0:
-            print(f"  [OK] Skema siap di Node {node['name']} ({node['container']})")
+            print(f"  [OK] Skema siap di Node {node['name']} ({get_container(node)})")
         else:
             print(f"  [FAIL] Gagal membuat skema di {node['name']}: {res.stderr if res else ''}")
 
@@ -86,17 +113,14 @@ def main():
     # 3. Load Master Data ke SEMUA node (Full Replication)
     print("\n2. Memuat Master Data (Full Replication: branches, products)...")
     for site_id, node in NODES.items():
-        # Kosongkan tabel dahulu untuk idempotensi
-        run_psql(node["container"], "TRUNCATE TABLE order_details, orders, customers, branch_stock, products, branches CASCADE;")
-        
-        copy_csv_to_table(node["container"], "branches", branches_cols, branches_data)
-        copy_csv_to_table(node["container"], "products", products_cols, products_data)
+        run_psql(node, "TRUNCATE TABLE order_details, orders, customers, branch_stock, products, branches CASCADE;")
+        copy_csv_to_table(node, "branches", branches_cols, branches_data)
+        copy_csv_to_table(node, "products", products_cols, products_data)
         print(f"  [OK] Master branches & products dimuat ke Node {node['name']}")
 
     # 4. Load Data Terpartisi (Horizontal Fragmentation) per Node
     print("\n3. Memuat Data Terfragmentasi (customers, branch_stock, orders, order_details)...")
     for site_id, node in NODES.items():
-        c_node = node["container"]
         name = node["name"]
         
         # Filter data spesifik cabang ini
@@ -106,10 +130,10 @@ def main():
         site_order_ids = {int(r["order_id"]) for r in site_orders}
         site_details = [r for r in details_data if int(r["order_id"]) in site_order_ids]
 
-        copy_csv_to_table(c_node, "customers", customers_cols, site_customers)
-        copy_csv_to_table(c_node, "branch_stock", stock_cols, site_stock)
-        copy_csv_to_table(c_node, "orders", orders_cols, site_orders)
-        copy_csv_to_table(c_node, "order_details", details_cols, site_details)
+        copy_csv_to_table(node, "customers", customers_cols, site_customers)
+        copy_csv_to_table(node, "branch_stock", stock_cols, site_stock)
+        copy_csv_to_table(node, "orders", orders_cols, site_orders)
+        copy_csv_to_table(node, "order_details", details_cols, site_details)
 
         print(f"  [OK] Node {name}: {len(site_customers)} customers, {len(site_stock)} stock, "
               f"{len(site_orders)} orders, {len(site_details)} order_details")
@@ -117,7 +141,6 @@ def main():
     # 5. Verifikasi jumlah baris
     print("\n4. Verifikasi Data:")
     for site_id, node in NODES.items():
-        c_node = node["container"]
         name = node["name"]
         check_query = """
         SELECT 
@@ -128,7 +151,7 @@ def main():
           (SELECT count(*) FROM orders) as orders,
           (SELECT count(*) FROM order_details) as order_details;
         """
-        res = run_psql(c_node, check_query)
+        res = run_psql(node, check_query)
         print(f"\n--- Node {name} (Port {node['port']}) ---")
         if res and res.returncode == 0:
             print(res.stdout.strip())

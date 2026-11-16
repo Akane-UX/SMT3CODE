@@ -1,0 +1,31 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "NusaMart Jakarta (Node 1)",
+      "Group": "NusaMart Cluster",
+      "Port": 5432,
+      "Username": "lab",
+      "Host": "pg-jakarta",
+      "SSLMode": "prefer",
+      "MaintenanceDB": "nusamart"
+    },
+    "2": {
+      "Name": "NusaMart Surabaya (Node 2)",
+      "Group": "NusaMart Cluster",
+      "Port": 5432,
+      "Username": "lab",
+      "Host": "pg-surabaya",
+      "SSLMode": "prefer",
+      "MaintenanceDB": "nusamart"
+    },
+    "3": {
+      "Name": "NusaMart Pontianak (Node 3)",
+      "Group": "NusaMart Cluster",
+      "Port": 5432,
+      "Username": "lab",
+      "Host": "pg-pontianak",
+      "SSLMode": "prefer",
+      "MaintenanceDB": "nusamart"
+    }
+  }
+}

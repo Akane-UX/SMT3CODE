@@ -28,6 +28,7 @@ x-postgres-common: &postgres-common
 services:
   pg-jakarta:
     <<: *postgres-common
+    container_name: nusamart-lab-pg-jakarta-1
     ports:
       - "127.0.0.1:5433:5432"
     volumes:
@@ -35,6 +36,7 @@ services:
 
   pg-surabaya:
     <<: *postgres-common
+    container_name: nusamart-lab-pg-surabaya-1
     ports:
       - "127.0.0.1:5434:5432"
     volumes:
@@ -42,10 +44,28 @@ services:
 
   pg-pontianak:
     <<: *postgres-common
+    container_name: nusamart-lab-pg-pontianak-1
     ports:
       - "127.0.0.1:5435:5432"
     volumes:
       - pg_pontianak_data:/var/lib/postgresql/data
+
+  # Layanan pgAdmin opsional (hanya jalan jika dipanggil: docker compose --profile with-pgadmin up -d)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: nusamart-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: lab@nusamart.com
+      PGADMIN_DEFAULT_PASSWORD: DBTech3Q
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+      - ./servers_docker.json:/pgadmin4/servers.json:ro
+    ports:
+      - "127.0.0.1:5050:80"
+    networks:
+      - nusamart-net
+    restart: unless-stopped
+    profiles: ["with-pgadmin"]
 
 networks:
   nusamart-net:

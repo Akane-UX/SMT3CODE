@@ -7,27 +7,52 @@ dan mengakses Global Views (v_all_customers, v_all_orders, v_all_order_details, 
 """
 
 import subprocess
+import sys
 
 NODES = {
     "jakarta": {
         "container": "nusamart-lab-pg-jakarta-1",
+        "alt_container": "pg-jakarta",
         "host": "pg-jakarta",
         "port": 5433,
         "peers": [("surabaya", "pg-surabaya"), ("pontianak", "pg-pontianak")]
     },
     "surabaya": {
         "container": "nusamart-lab-pg-surabaya-1",
+        "alt_container": "pg-surabaya",
         "host": "pg-surabaya",
         "port": 5434,
         "peers": [("jakarta", "pg-jakarta"), ("pontianak", "pg-pontianak")]
     },
     "pontianak": {
         "container": "nusamart-lab-pg-pontianak-1",
+        "alt_container": "pg-pontianak",
         "host": "pg-pontianak",
         "port": 5435,
         "peers": [("jakarta", "pg-jakarta"), ("surabaya", "pg-surabaya")]
     }
 }
+
+_resolved_containers = {}
+
+def get_container(info: dict, name: str) -> str:
+    if name in _resolved_containers:
+        return _resolved_containers[name]
+    
+    c1 = info["container"]
+    chk = subprocess.run(["docker", "inspect", c1], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    if chk.returncode == 0:
+        _resolved_containers[name] = c1
+        return c1
+        
+    c2 = info["alt_container"]
+    chk2 = subprocess.run(["docker", "inspect", c2], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    if chk2.returncode == 0:
+        _resolved_containers[name] = c2
+        return c2
+
+    _resolved_containers[name] = c1
+    return c1
 
 
 def run_sql(container: str, sql: str):
@@ -44,7 +69,8 @@ def main():
     print("=" * 65)
 
     for node_name, info in NODES.items():
-        print(f"\n[+] Mengonfigurasi FDW di Node {node_name.title()}...")
+        container = get_container(info, node_name)
+        print(f"\n[+] Mengonfigurasi FDW di Node {node_name.title()} ({container})...")
         sql = "CREATE EXTENSION IF NOT EXISTS postgres_fdw;\n"
 
         for peer_name, peer_host in info["peers"]:
@@ -97,23 +123,28 @@ def main():
           SELECT * FROM {p2}.branch_stock;
         """
 
-        run_sql(info["container"], sql)
-        print(f"  [OK] FDW Server & Global Views aktif di Node {node_name.title()}")
+        res = run_sql(container, sql)
+        if res.returncode == 0:
+            print(f"  [OK] FDW dan Global Views siap di {node_name.title()}")
+        else:
+            print(f"  [FAIL] Gagal konfigurasi FDW di {node_name.title()}")
 
     # Tes Kueri Terdistribusi
     print("\n" + "=" * 65)
-    print("Pengujian Kueri Terdistribusi (Global Views):")
+    print("Pengujian Kueri Terdistribusi (Global View dari Node Jakarta):")
     print("=" * 65)
-    test_sql = """
+    test_query = """
     SELECT 
-      (SELECT count(*) FROM v_all_customers) as total_customers,
-      (SELECT count(*) FROM v_all_orders) as total_orders,
-      (SELECT count(*) FROM v_all_order_details) as total_order_details,
-      (SELECT count(*) FROM v_all_branch_stock) as total_stock_rows;
+      (SELECT count(*) FROM v_all_customers) as total_global_customers,
+      (SELECT count(*) FROM v_all_orders) as total_global_orders,
+      (SELECT count(*) FROM v_all_order_details) as total_global_order_details,
+      (SELECT count(*) FROM v_all_branch_stock) as total_global_stock_rows;
     """
-    res = run_sql(NODES["surabaya"]["container"], test_sql)
-    print("\nHasil Kueri Global dari Node Surabaya:")
-    print(res.stdout.strip())
+    res = run_sql(get_container(NODES["jakarta"], "jakarta"), test_query)
+    if res and res.returncode == 0:
+        print(res.stdout.strip())
+    else:
+        print("Pengujian query gagal.")
 
 
 if __name__ == "__main__":
